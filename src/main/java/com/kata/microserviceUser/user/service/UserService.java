@@ -7,14 +7,11 @@ import com.kata.microserviceUser.user.userDTO.UserPasswordRequest;
 import com.kata.microserviceUser.user.userDTO.UserRequest;
 import com.kata.microserviceUser.user.userDTO.UserResponse;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.crossstore.ChangeSetPersister;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.lang.module.ResolutionException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 public class UserService {
@@ -25,9 +22,9 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public UserResponse findUserById(Long id) throws ResourceNotFoundException {
-        User user = userRepository.findById(id).orElseThrow(
-                () -> new ResourceNotFoundException("User with id " + id + " not found")
+    public UserResponse findUserById(Long userId) throws ResourceNotFoundException {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new ResourceNotFoundException("User with id " + userId + " not found")
         );
 
         return new UserResponse(
@@ -38,8 +35,7 @@ public class UserService {
         );
     }
 
-    public UserResponse findUserByUsername(UserRequest userRequest) throws ResourceNotFoundException {
-        String username = userRequest.getUsername();
+    public UserResponse findUserByUsername(String username) throws ResourceNotFoundException {
         User user = userRepository.findByUsername(username).orElseThrow(
                 () -> new ResourceNotFoundException("User with username " + username + " not found")
         );
@@ -52,9 +48,8 @@ public class UserService {
         );
     }
 
-    public UserResponse findUserByEmail(UserRequest userRequest) throws ResourceNotFoundException {
-        String email = userRequest.getEmail();
-        User user = userRepository.findByUsername(email).orElseThrow(
+    public UserResponse findUserByEmail(String email) throws ResourceNotFoundException {
+        User user = userRepository.findByEmail(email).orElseThrow(
                 () -> new ResourceNotFoundException("User with email " + email + " not found")
         );
 
@@ -66,8 +61,13 @@ public class UserService {
         );
     }
 
-    public List<UserResponse> findAllUsers() {
+    public List<UserResponse> findAllUsers() throws ResourceNotFoundException {
         List<User> users = userRepository.findAll();
+
+        if (users.isEmpty()) {
+            throw new ResourceNotFoundException("There is no users in the database");
+        }
+
         List<UserResponse> userResponses = new ArrayList<>();
 
         for (User user : users) {
@@ -140,10 +140,10 @@ public class UserService {
         );
     }
 
-    public Long deleteUser(Long id) throws ResourceNotFoundException {
+    public void deleteUser(Long id) throws ResourceNotFoundException {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+        System.out.println("Trying to delete user with ID: " + id);
         userRepository.delete(user);
-        return user.getUserId();
     }
 }
