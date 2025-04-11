@@ -15,3 +15,5 @@ VALUES ('jdoe', 'John Doe', 'jdoe@example.com', '$2a$10$7rY8gZ98P1C3gU6j5w8TDe6A
         '$2a$10$7rY8gZ98P1C3gU6j5w8TDe6AFAD9i0JcDb/m09eU/ZUzIRZWElMHa'),
        ('mjackson', 'Michael Jackson', 'mjackson@example.com',
         '$2a$10$7rY8gZ98P1C3gU6j5w8TDe6AFAD9i0JcDb/m09eU/ZUzIRZWElMHa');
+
+-- password123

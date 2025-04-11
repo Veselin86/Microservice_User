@@ -9,7 +9,8 @@ public class User {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
+    @Column(name = "user_id")
+    private Long userId;
 
     private String username;
 
@@ -29,8 +30,8 @@ public class User {
         this.password = password;
     }
 
-    public User(Long id, String username, String name, String email, String password) {
-        this.id = id;
+    public User(Long userId, String username, String name, String email, String password) {
+        this.userId = userId;
         this.username = username;
         this.name = name;
         this.email = email;
@@ -38,11 +39,11 @@ public class User {
     }
 
     public Long getUserId() {
-        return id;
+        return userId;
     }
 
-    public void setUserId(Long id) {
-        this.id = id;
+    public void setUserId(Long userId) {
+        this.userId = userId;
     }
 
     public String getUsername() {
@@ -81,18 +82,18 @@ public class User {
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(name, user.name) && Objects.equals(email, user.email) && Objects.equals(password, user.password);
+        return Objects.equals(userId, user.userId) && Objects.equals(username, user.username) && Objects.equals(name, user.name) && Objects.equals(email, user.email) && Objects.equals(password, user.password);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id, username, name, email, password);
+        return Objects.hash(userId, username, name, email, password);
     }
 
     @Override
     public String toString() {
         return "User{" +
-                "userId=" + id +
+                "userId=" + userId +
                 ", username='" + username + '\'' +
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
