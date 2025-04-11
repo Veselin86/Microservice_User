@@ -1,0 +1,8 @@
+CREATE TABLE users
+(
+    id bigInt AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(250) NOT NULL UNIQUE,
+    name VARCHAR(250),
+    email VARCHAR(250) NOT NULL UNIQUE,
+    password VARCHAR(250) NOT NULL
+);
