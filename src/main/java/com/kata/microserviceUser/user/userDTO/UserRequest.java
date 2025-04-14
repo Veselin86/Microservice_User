@@ -1,9 +1,6 @@
 package com.kata.microserviceUser.user.userDTO;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 
 import java.util.Objects;
 
@@ -19,6 +16,8 @@ public class UserRequest {
     @Email(message = "Not valid email")
     private String email;
 
+    @NotBlank(message = "Password is obligatory")
+    @Size(min = 4, message = "Password must be at least 4 characters")
     private String password;
 
     public UserRequest() {

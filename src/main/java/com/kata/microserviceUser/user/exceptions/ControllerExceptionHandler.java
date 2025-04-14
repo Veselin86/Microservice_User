@@ -33,5 +33,5 @@ public class ControllerExceptionHandler {
         bindingResult.getFieldErrors().forEach(error ->
                 errors.put(error.getField(), error.getDefaultMessage())
         );
-        return ResponseEntity.badRequest().body(errors);
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errors);
     }}

@@ -1,6 +1,7 @@
 package com.kata.microserviceUser.user.service;
 
 import com.kata.microserviceUser.user.entity.User;
+import com.kata.microserviceUser.user.exceptions.MethodArgumentNotValidException;
 import com.kata.microserviceUser.user.exceptions.ResourceNotFoundException;
 import com.kata.microserviceUser.user.repository.UserRepository;
 import com.kata.microserviceUser.user.userDTO.UserPasswordRequest;
@@ -83,8 +84,20 @@ public class UserService {
         return userResponses;
     }
 
-    public UserResponse createUser(UserRequest userRequest) {
+    public UserResponse createUser(UserRequest userRequest) throws MethodArgumentNotValidException, ResourceNotFoundException {
+        List<UserResponse> userResponse = findAllUsers();
+
+        for (UserResponse user : userResponse) {
+            if (userRequest.getUsername().equals(user.getUsername())) {
+                throw new MethodArgumentNotValidException("Username is already taken");
+            }
+            if (userRequest.getEmail().equals(user.getEmail())) {
+                throw new MethodArgumentNotValidException("Email is already taken");
+            }
+        }
+
         User user = new User();
+
         String rawPassword = userRequest.getPassword();
         String encodedPassword = passwordEncoder.encode(rawPassword);
 
@@ -121,23 +134,27 @@ public class UserService {
         );
     }
 
-    public UserResponse updateUserPassword(Long id, UserPasswordRequest userPasswordRequest) throws ResourceNotFoundException {
+    public void updateUserPassword(Long id, UserPasswordRequest userPasswordRequest)
+            throws ResourceNotFoundException, MethodArgumentNotValidException {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
 
-        String rawPassword = userPasswordRequest.getPassword();
+        String newPassword = userPasswordRequest.getNewPassword();
+        String existingPassword = userPasswordRequest.getExistingPassword();
+        String rawPassword = userPasswordRequest.getExistingPassword();
         String encodedPassword = passwordEncoder.encode(rawPassword);
+        String userPassword = user.getPassword();
+
+        if (passwordEncoder.matches(userPasswordRequest.getExistingPassword(), user.getPassword())) {
+            throw new MethodArgumentNotValidException("Wrong password");
+        }
+
+//        String rawPassword = userPasswordRequest.getNewPassword();
+//        String encodedPassword = passwordEncoder.encode(rawPassword);
 
         user.setPassword(encodedPassword);
 
         userRepository.save(user);
-
-        return new UserResponse(
-                user.getUserId(),
-                user.getUsername(),
-                user.getName(),
-                user.getEmail()
-        );
     }
 
     public void deleteUser(Long id) throws ResourceNotFoundException {

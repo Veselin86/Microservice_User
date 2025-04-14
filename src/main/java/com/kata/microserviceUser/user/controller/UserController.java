@@ -47,7 +47,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest userRequest)
-            throws MethodArgumentNotValidException {
+            throws MethodArgumentNotValidException, ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequest));
     }
 
@@ -57,11 +57,12 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userService.updateUser(userId, userRequest));
     }
 
-//    @PutMapping("/{userId}")
-//    public ResponseEntity<UserResponse> updateUserPassword(@PathVariable Long userId, @Valid @RequestBody UserPasswordRequest userPasswordRequest)
-//            throws MethodArgumentNotValidException, ResourceNotFoundException {
-//        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userService.updateUserPassword(userId, userPasswordRequest));
-//    }
+    @PutMapping("/password/{userId}")
+    public ResponseEntity<String> updateUserPassword(@PathVariable Long userId, @Valid @RequestBody UserPasswordRequest userPasswordRequest)
+            throws MethodArgumentNotValidException, ResourceNotFoundException {
+            userService.updateUserPassword(userId, userPasswordRequest);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body("User with id " + userId + " password updated");
+    }
 
     @DeleteMapping("/{userId}")
     public ResponseEntity<Object> deleteUser(@PathVariable Long userId)
