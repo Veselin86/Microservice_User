@@ -34,4 +34,11 @@ public class ControllerExceptionHandler {
                 errors.put(error.getField(), error.getDefaultMessage())
         );
         return ResponseEntity.status(HttpStatus.CONFLICT).body(errors);
-    }}
+    }
+
+    @ExceptionHandler(UniqueFieldException.class)
+    public ResponseEntity<Map<String, String>> handleEmailExists(UniqueFieldException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("message", ex.getMessage()));
+    }
+}

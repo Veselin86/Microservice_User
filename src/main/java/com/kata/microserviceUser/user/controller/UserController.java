@@ -34,7 +34,7 @@ public class UserController {
     }
 
     @GetMapping("/email/{email}")
-    public ResponseEntity<UserResponse> findUserByEmail(@PathVariable String email)
+    public ResponseEntity<UserResponse> findUserByEmail(@Valid @PathVariable String email)
             throws ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.OK).body(userService.findUserByEmail(email));
     }
@@ -46,8 +46,7 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest userRequest)
-            throws MethodArgumentNotValidException, ResourceNotFoundException {
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest userRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequest));
     }
 

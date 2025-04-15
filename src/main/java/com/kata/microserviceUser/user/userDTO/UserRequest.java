@@ -1,18 +1,23 @@
 package com.kata.microserviceUser.user.userDTO;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.*;
+import org.springframework.validation.annotation.Validated;
 
+import javax.xml.transform.Source;
 import java.util.Objects;
 
+@Validated
 public class UserRequest {
 
-    @NotNull(message = "Username is obligatory")
+    @NotBlank(message = "Username is obligatory")
     private String username;
 
-    @NotEmpty(message = "Name can't be blank")
+    @NotBlank(message = "Name can't be blank")
     private String name;
 
-    @NotNull(message = "Email is obligatory")
+    @NotBlank(message = "Email is obligatory")
     @Email(message = "Not valid email")
     private String email;
 
@@ -21,6 +26,12 @@ public class UserRequest {
     private String password;
 
     public UserRequest() {
+    }
+
+    public UserRequest(String username, String name, String email) {
+        this.username = username;
+        this.name = name;
+        this.email = email;
     }
 
     public UserRequest(String username, String name, String email, String password) {

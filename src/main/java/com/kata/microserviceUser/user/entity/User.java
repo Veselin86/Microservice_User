@@ -1,6 +1,7 @@
 package com.kata.microserviceUser.user.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Email;
 
 import java.util.Objects;
 
@@ -13,10 +14,14 @@ public class User {
     @Column(name = "user_id")
     private Long userId;
 
+    @Column(unique = true, nullable = false)
     private String username;
 
+    @Column(nullable = false)
     private String name;
 
+    @Email(message = "Not valid email")
+    @Column(unique = true, nullable = false)
     private String email;
 
     private String password;

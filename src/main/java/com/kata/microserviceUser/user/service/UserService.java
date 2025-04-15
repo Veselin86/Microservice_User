@@ -3,18 +3,23 @@ package com.kata.microserviceUser.user.service;
 import com.kata.microserviceUser.user.entity.User;
 import com.kata.microserviceUser.user.exceptions.MethodArgumentNotValidException;
 import com.kata.microserviceUser.user.exceptions.ResourceNotFoundException;
+import com.kata.microserviceUser.user.exceptions.UniqueFieldException;
 import com.kata.microserviceUser.user.repository.UserRepository;
 import com.kata.microserviceUser.user.userDTO.UserPasswordRequest;
 import com.kata.microserviceUser.user.userDTO.UserRequest;
 import com.kata.microserviceUser.user.userDTO.UserResponse;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@Validated
 public class UserService {
 
     @Autowired
@@ -65,10 +70,6 @@ public class UserService {
     public List<UserResponse> findAllUsers() throws ResourceNotFoundException {
         List<User> users = userRepository.findAll();
 
-        if (users.isEmpty()) {
-            throw new ResourceNotFoundException("There is no users in the database");
-        }
-
         List<UserResponse> userResponses = new ArrayList<>();
 
         for (User user : users) {
@@ -84,41 +85,46 @@ public class UserService {
         return userResponses;
     }
 
-    public UserResponse createUser(UserRequest userRequest) throws MethodArgumentNotValidException, ResourceNotFoundException {
-        List<UserResponse> userResponse = findAllUsers();
-
-        for (UserResponse user : userResponse) {
-            if (userRequest.getUsername().equals(user.getUsername())) {
-                throw new MethodArgumentNotValidException("Username is already taken");
-            }
-            if (userRequest.getEmail().equals(user.getEmail())) {
-                throw new MethodArgumentNotValidException("Email is already taken");
-            }
+    public UserResponse createUser(UserRequest userRequest) {
+        if(userRepository.existsByEmail(userRequest.getEmail())) {
+            throw new UniqueFieldException("Email already in use");
         }
 
-        User user = new User();
+        if(userRepository.existsByUsername(userRequest.getUsername())) {
+            throw new UniqueFieldException("Username already in use");
+        }
 
         String rawPassword = userRequest.getPassword();
         String encodedPassword = passwordEncoder.encode(rawPassword);
 
-        user.setUsername(userRequest.getUsername());
-        user.setName(userRequest.getName());
-        user.setEmail(userRequest.getEmail());
-        user.setPassword(encodedPassword);
+        User user = new User(
+            userRequest.getUsername(),
+            userRequest.getName(),
+            userRequest.getEmail(),
+            encodedPassword
+        );
 
-        User newUser = userRepository.save(user);
+        user = userRepository.save(user);
 
         return new UserResponse(
-                newUser.getUserId(),
-                newUser.getUsername(),
-                newUser.getName(),
-                newUser.getEmail()
+                user.getUserId(),
+                user.getUsername(),
+                user.getName(),
+                user.getEmail()
         );
     }
 
     public UserResponse updateUser(Long id, UserRequest userRequest) throws ResourceNotFoundException {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+
+        if(userRepository.existsByEmail(userRequest.getEmail())) {
+            throw new UniqueFieldException("Email already in use");
+        }
+
+        if(userRepository.existsByUsername(userRequest.getUsername())) {
+            throw new UniqueFieldException("Username already in use");
+        }
 
         user.setUsername(userRequest.getUsername());
         user.setName(userRequest.getName());
@@ -139,18 +145,12 @@ public class UserService {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
 
-        String newPassword = userPasswordRequest.getNewPassword();
-        String existingPassword = userPasswordRequest.getExistingPassword();
-        String rawPassword = userPasswordRequest.getExistingPassword();
-        String encodedPassword = passwordEncoder.encode(rawPassword);
-        String userPassword = user.getPassword();
-
-        if (passwordEncoder.matches(userPasswordRequest.getExistingPassword(), user.getPassword())) {
+        if (!passwordEncoder.matches(userPasswordRequest.getExistingPassword(), user.getPassword())) {
             throw new MethodArgumentNotValidException("Wrong password");
         }
 
-//        String rawPassword = userPasswordRequest.getNewPassword();
-//        String encodedPassword = passwordEncoder.encode(rawPassword);
+        String rawPassword = userPasswordRequest.getNewPassword();
+        String encodedPassword = passwordEncoder.encode(rawPassword);
 
         user.setPassword(encodedPassword);
 
@@ -160,7 +160,6 @@ public class UserService {
     public void deleteUser(Long id) throws ResourceNotFoundException {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
-        System.out.println("Trying to delete user with ID: " + id);
         userRepository.delete(user);
     }
 }
