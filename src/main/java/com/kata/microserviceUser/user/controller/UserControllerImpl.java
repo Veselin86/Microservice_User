@@ -17,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/users")
-public class UserControllerImpl {
+public class UserControllerImpl implements IUserController {
 
     @Autowired
     private UserService userService;
@@ -53,7 +53,7 @@ public class UserControllerImpl {
 
     @PutMapping("/{userId}")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long userId, @Valid @RequestBody UserRequestUpdate userRequestUpdate)
-            throws MethodArgumentNotValidException, ResourceNotFoundException {
+            throws ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userService.updateUser(userId, userRequestUpdate));
     }
 
