@@ -1,28 +1,28 @@
 package com.kata.microserviceUser.user.config;
 
-import com.kata.microserviceUser.user.userDTO.UserRequest;
+import com.kata.microserviceUser.user.userDTO.UserRequestCreate;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class DataValidator {
 
-    public List<String> validate(UserRequest userRequest) {
+    public List<String> validate(UserRequestCreate userRequestCreate) {
         List<String> errors = new ArrayList<>();
 
-        if (userRequest.getUsername() == null) {
+        if (userRequestCreate.getUsername() == null) {
             errors.add("Username is obligatory");
         }
-        if (userRequest.getName() == null) {
+        if (userRequestCreate.getName() == null) {
             errors.add("Name can't be blank");
         }
-        if (userRequest.getEmail() == null) {
+        if (userRequestCreate.getEmail() == null) {
             errors.add("Email is obligatory");
         }
-        if (userRequest.getPassword() == null) {
+        if (userRequestCreate.getPassword() == null) {
             errors.add("Password is obligatory");
         }
-        if (userRequest.getPassword().length() < 4) {
+        if (userRequestCreate.getPassword().length() < 4) {
             errors.add("Password should be at least 4 characters");
         }
 

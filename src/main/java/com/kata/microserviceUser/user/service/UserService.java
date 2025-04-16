@@ -3,14 +3,12 @@ package com.kata.microserviceUser.user.service;
 import com.kata.microserviceUser.user.entity.User;
 import com.kata.microserviceUser.user.exceptions.MethodArgumentNotValidException;
 import com.kata.microserviceUser.user.exceptions.ResourceNotFoundException;
-import com.kata.microserviceUser.user.exceptions.UniqueFieldException;
 import com.kata.microserviceUser.user.repository.UserRepository;
 import com.kata.microserviceUser.user.userDTO.UserPasswordRequest;
-import com.kata.microserviceUser.user.userDTO.UserRequest;
+import com.kata.microserviceUser.user.userDTO.UserRequestCreate;
+import com.kata.microserviceUser.user.userDTO.UserRequestUpdate;
 import com.kata.microserviceUser.user.userDTO.UserResponse;
-import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.validation.annotation.Validated;
@@ -85,23 +83,15 @@ public class UserService {
         return userResponses;
     }
 
-    public UserResponse createUser(UserRequest userRequest) {
-        if(userRepository.existsByEmail(userRequest.getEmail())) {
-            throw new UniqueFieldException("Email already in use");
-        }
-
-        if(userRepository.existsByUsername(userRequest.getUsername())) {
-            throw new UniqueFieldException("Username already in use");
-        }
-
-        String rawPassword = userRequest.getPassword();
+    public UserResponse createUser(UserRequestCreate userRequestCreate) {
+        String rawPassword = userRequestCreate.getPassword();
         String encodedPassword = passwordEncoder.encode(rawPassword);
 
         User user = new User(
-            userRequest.getUsername(),
-            userRequest.getName(),
-            userRequest.getEmail(),
-            encodedPassword
+                userRequestCreate.getUsername(),
+                userRequestCreate.getName(),
+                userRequestCreate.getEmail(),
+                encodedPassword
         );
 
         user = userRepository.save(user);
@@ -114,29 +104,21 @@ public class UserService {
         );
     }
 
-    public UserResponse updateUser(Long id, UserRequest userRequest) throws ResourceNotFoundException {
+    public UserResponse updateUser(Long id, UserRequestUpdate userRequestUpdate) throws ResourceNotFoundException {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
 
-        if(userRepository.existsByEmail(userRequest.getEmail())) {
-            throw new UniqueFieldException("Email already in use");
-        }
-
-        if(userRepository.existsByUsername(userRequest.getUsername())) {
-            throw new UniqueFieldException("Username already in use");
-        }
-
-        user.setUsername(userRequest.getUsername());
-        user.setName(userRequest.getName());
-        user.setEmail(userRequest.getEmail());
+        user.setUsername(userRequestUpdate.getUsername());
+        user.setName(userRequestUpdate.getName());
+        user.setEmail(userRequestUpdate.getEmail());
 
         userRepository.save(user);
 
         return new UserResponse(
-                    id,
-                    userRequest.getUsername(),
-                    userRequest.getName(),
-                    userRequest.getEmail()
+                id,
+                userRequestUpdate.getUsername(),
+                userRequestUpdate.getName(),
+                userRequestUpdate.getEmail()
         );
     }
 

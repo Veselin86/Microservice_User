@@ -1,15 +1,12 @@
 package com.kata.microserviceUser.user.userDTO;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.*;
 import org.springframework.validation.annotation.Validated;
 
-import javax.xml.transform.Source;
 import java.util.Objects;
 
 @Validated
-public class UserRequest {
+public class UserRequestCreate {
 
     @NotBlank(message = "Username is obligatory")
     private String username;
@@ -25,16 +22,16 @@ public class UserRequest {
     @Size(min = 4, message = "Password must be at least 4 characters")
     private String password;
 
-    public UserRequest() {
+    public UserRequestCreate() {
     }
 
-    public UserRequest(String username, String name, String email) {
+    public UserRequestCreate(String username, String name, String email) {
         this.username = username;
         this.name = name;
         this.email = email;
     }
 
-    public UserRequest(String username, String name, String email, String password) {
+    public UserRequestCreate(String username, String name, String email, String password) {
         this.username = username;
         this.name = name;
         this.email = email;
@@ -77,7 +74,7 @@ public class UserRequest {
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
-        UserRequest that = (UserRequest) o;
+        UserRequestCreate that = (UserRequestCreate) o;
         return Objects.equals(username, that.username) && Objects.equals(name, that.name) && Objects.equals(email, that.email) && Objects.equals(password, that.password);
     }
 

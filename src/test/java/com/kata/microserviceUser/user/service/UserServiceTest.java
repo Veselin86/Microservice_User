@@ -3,10 +3,10 @@ package com.kata.microserviceUser.user.service;
 import com.kata.microserviceUser.user.entity.User;
 import com.kata.microserviceUser.user.exceptions.MethodArgumentNotValidException;
 import com.kata.microserviceUser.user.exceptions.ResourceNotFoundException;
-import com.kata.microserviceUser.user.exceptions.UniqueFieldException;
 import com.kata.microserviceUser.user.repository.UserRepository;
 import com.kata.microserviceUser.user.userDTO.UserPasswordRequest;
-import com.kata.microserviceUser.user.userDTO.UserRequest;
+import com.kata.microserviceUser.user.userDTO.UserRequestCreate;
+import com.kata.microserviceUser.user.userDTO.UserRequestUpdate;
 import com.kata.microserviceUser.user.userDTO.UserResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +14,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 
@@ -34,52 +35,10 @@ class UserServiceTest {
     @Mock
     private PasswordEncoder passwordEncoder;
 
-//    private final Validator validator = Validator.buildDefaultValidatorFactory().getValidator();
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.initMocks(this);
-    }
-
-    @Test
-    void existsByUsername_existingUsername_returnsTrue() {
-        // Given
-        String username = "test_username";
-        User user = new User(1L, username, "test_name", "test@test.com", "test1234");
-        Mockito.when(userRepository.existsByUsername(username)).thenReturn(true);
-
-        // When
-        boolean actual = userRepository.existsByUsername(username);
-
-        // Then
-        assertTrue(actual);
-    }
-
-    @Test
-    void existsByUsername_nonExistingUsername_returnsFalse() {
-        // Given
-
-        // When
-
-        // Then
-    }
-
-    @Test
-    void existsByEmail_existingEmail_returnsTrue() {
-        // Given
-
-        // When
-
-        // Then
-    }
-
-    @Test
-    void existsByEmail_nonExistingEmail_returnsFalse() {
-        // Given
-
-        // When
-
-        // Then
     }
 
     @Test
@@ -214,27 +173,19 @@ class UserServiceTest {
         String email = "test@test.com";
         String username = "test_username";
         String password = "test1234";
-        Mockito.when(userRepository.existsByEmail(email)).thenReturn(false);
-        Mockito.when(userRepository.existsByUsername(username)).thenReturn(false);
 
         Mockito.when(passwordEncoder.encode(Mockito.any(String.class))).thenReturn(password);
 
         User user = new User(1L, username, "test_name", email, password);
         UserResponse expected = new UserResponse(1L, username, "test_name", email);
-        UserRequest userRequest = new UserRequest(username, "test_name", email, password);
+        UserRequestCreate userRequestCreate = new UserRequestCreate(username, "test_name", email, password);
 
         Mockito.when(userRepository.save(Mockito.any(User.class))).thenReturn(user);
 
         // When
-        boolean actualEmail = userRepository.existsByEmail(email);
-        boolean actualUsername = userRepository.existsByUsername(username);
-
-        UserResponse actual = userService.createUser(userRequest);
+        UserResponse actual = userService.createUser(userRequestCreate);
 
         // Then
-        assertFalse(actualEmail);
-        assertFalse(actualUsername);
-
         assertEquals(expected.getUserId(), actual.getUserId());
         assertEquals(expected.getUsername(), actual.getUsername());
         assertEquals(expected.getName(), actual.getName());
@@ -242,38 +193,37 @@ class UserServiceTest {
     }
 
     @Test
-    void createUser_validUserRequestWithEmailInUse_throwUniqueFieldException() {
+    void createUser_validUserRequestWithEmailInUse_throwDataIntegrityViolationException() {
         // Given
         String email = "test@test.com";
-        User user = new User(1L, "test_username", "test_name", email, "test1234");
-        UserRequest userRequest = new UserRequest("test_username1", "test_name1", email, "test1234");
-        Mockito.when(userRepository.existsByEmail(email)).thenReturn(true);
+        UserRequestCreate userRequestCreate = new UserRequestCreate("test_username1", "test_name1", email, "test1234");
+        Mockito.when(userRepository.save(Mockito.any(User.class)))
+                .thenThrow(new DataIntegrityViolationException("Email already taken"));
 
         // When
-        UniqueFieldException exception = assertThrows(UniqueFieldException.class, () -> {
-                    userService.createUser(userRequest);
+        DataIntegrityViolationException exception = assertThrows(DataIntegrityViolationException.class, () -> {
+                    userService.createUser(userRequestCreate);
         });
 
         // Then
-        assertEquals("Email already in use", exception.getMessage());
+        assertEquals("Email already taken", exception.getMessage());
     }
 
     @Test
     void createUser_validUserRequestWithUsernameInUse_throwUniqueFieldException() {
         // Given
         String username = "test_username";
-
-        User user = new User(1L, username, "test_name", "test@test.com", "test1234");
-        UserRequest userRequest = new UserRequest(username, "test_name1", "test1@test.com", "test1234");
-        Mockito.when(userRepository.existsByUsername(username)).thenReturn(true);
+        UserRequestCreate userRequestCreate = new UserRequestCreate(username, "test_name1", "test1@test.com", "test1234");
+        Mockito.when(userRepository.save(Mockito.any(User.class)))
+                .thenThrow(new DataIntegrityViolationException("Username already taken"));
 
         // When
-        UniqueFieldException exception = assertThrows(UniqueFieldException.class, () -> {
-            userService.createUser(userRequest);
+        DataIntegrityViolationException exception = assertThrows(DataIntegrityViolationException.class, () -> {
+            userService.createUser(userRequestCreate);
         });
 
         // Then
-        assertEquals("Username already in use", exception.getMessage());
+        assertEquals("Username already taken", exception.getMessage());
     }
 
     @Test
@@ -281,8 +231,6 @@ class UserServiceTest {
         // Given
         Long id = 1L;
         String password = "test1234";
-        String email = "test@test.com";
-        String username = "test_username";
 
         Mockito.when(passwordEncoder.encode(Mockito.any(String.class))).thenReturn(password);
 
@@ -292,15 +240,13 @@ class UserServiceTest {
         modifiedUser.setName("test_name1");
         modifiedUser.setEmail("test1@test.com");
         UserResponse expected = new UserResponse(id, "test_username1", "test_name1", "test1@test.com");
-        UserRequest userRequest = new UserRequest("test_username1", "test_name1", "test1@test.com");
+        UserRequestUpdate userRequestUpdate = new UserRequestUpdate("test_username1", "test_name1", "test1@test.com");
 
-        Mockito.when(userRepository.existsByEmail(email)).thenReturn(false);
-        Mockito.when(userRepository.existsByUsername(username)).thenReturn(false);
         Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
         Mockito.when(userRepository.save(Mockito.any(User.class))).thenReturn(modifiedUser);
 
         // When
-        UserResponse actual = userService.updateUser(id, userRequest);
+        UserResponse actual = userService.updateUser(id, userRequestUpdate);
 
         // Then
         assertEquals(expected.getUserId(), actual.getUserId());
@@ -316,18 +262,19 @@ class UserServiceTest {
         Long id = 1L;
         String email = "test@test.com";
         User user = new User(id, "test_username", "test_name", email, "test1234");
-        UserRequest userRequest = new UserRequest("test_username1", "test_name1", email);
+        UserRequestUpdate userRequestUpdate = new UserRequestUpdate("test_username1", "test_name1", email);
 
         Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
-        Mockito.when(userRepository.existsByEmail(email)).thenReturn(true);
+        Mockito.when(userRepository.save(Mockito.any(User.class)))
+                .thenThrow(new DataIntegrityViolationException("Email already taken"));
 
         // When
-        UniqueFieldException exception = assertThrows(UniqueFieldException.class, () -> {
-            userService.updateUser(id, userRequest);
+        DataIntegrityViolationException exception = assertThrows(DataIntegrityViolationException.class, () -> {
+            userService.updateUser(id, userRequestUpdate);
         });
 
         // Then
-        assertEquals("Email already in use", exception.getMessage());
+        assertEquals("Email already taken", exception.getMessage());
     }
 
     @Test
@@ -335,19 +282,20 @@ class UserServiceTest {
         // Given
         Long id = 1L;
         String username = "test_username";
-        User user = new User(id, username, "test_name", "test@test.com", "test1234");
-        UserRequest userRequest = new UserRequest(username, "test_name1", "test1@test.com", "test1234");
+        User userExisting = new User(1L, username, "test_name", "test@test.com", "test1234");
+        UserRequestUpdate userRequestUpdate = new UserRequestUpdate(username, "test_name1", "test1@test.com");
 
-        Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
-        Mockito.when(userRepository.existsByUsername(username)).thenReturn(true);
+        Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(userExisting));
+        Mockito.when(userRepository.save(Mockito.any(User.class)))
+                .thenThrow(new DataIntegrityViolationException("Username already taken"));
 
         // When
-        UniqueFieldException exception = assertThrows(UniqueFieldException.class, () -> {
-            userService.updateUser(id, userRequest);
+        DataIntegrityViolationException exception = assertThrows(DataIntegrityViolationException.class, () -> {
+            userService.updateUser(id, userRequestUpdate);
         });
 
         // Then
-        assertEquals("Username already in use", exception.getMessage());
+        assertEquals("Username already taken", exception.getMessage());
     }
 
     @Test

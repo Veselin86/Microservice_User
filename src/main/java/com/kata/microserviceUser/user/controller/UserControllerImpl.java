@@ -4,7 +4,8 @@ import com.kata.microserviceUser.user.exceptions.MethodArgumentNotValidException
 import com.kata.microserviceUser.user.exceptions.ResourceNotFoundException;
 import com.kata.microserviceUser.user.service.UserService;
 import com.kata.microserviceUser.user.userDTO.UserPasswordRequest;
-import com.kata.microserviceUser.user.userDTO.UserRequest;
+import com.kata.microserviceUser.user.userDTO.UserRequestCreate;
+import com.kata.microserviceUser.user.userDTO.UserRequestUpdate;
 import com.kata.microserviceUser.user.userDTO.UserResponse;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +17,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/users")
-public class UserController {
+public class UserControllerImpl {
 
     @Autowired
     private UserService userService;
@@ -46,20 +47,20 @@ public class UserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequest userRequest) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequest));
+    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequestCreate userRequestCreate) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequestCreate));
     }
 
     @PutMapping("/{userId}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable Long userId, @Valid @RequestBody UserRequest userRequest)
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long userId, @Valid @RequestBody UserRequestUpdate userRequestUpdate)
             throws MethodArgumentNotValidException, ResourceNotFoundException {
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userService.updateUser(userId, userRequest));
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(userService.updateUser(userId, userRequestUpdate));
     }
 
     @PutMapping("/password/{userId}")
     public ResponseEntity<String> updateUserPassword(@PathVariable Long userId, @Valid @RequestBody UserPasswordRequest userPasswordRequest)
             throws MethodArgumentNotValidException, ResourceNotFoundException {
-            userService.updateUserPassword(userId, userPasswordRequest);
+        userService.updateUserPassword(userId, userPasswordRequest);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("User with id " + userId + " password updated");
     }
 

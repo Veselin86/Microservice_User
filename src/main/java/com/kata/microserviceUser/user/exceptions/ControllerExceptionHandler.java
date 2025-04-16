@@ -1,5 +1,6 @@
 package com.kata.microserviceUser.user.exceptions;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -33,12 +34,22 @@ public class ControllerExceptionHandler {
         bindingResult.getFieldErrors().forEach(error ->
                 errors.put(error.getField(), error.getDefaultMessage())
         );
-        return ResponseEntity.status(HttpStatus.CONFLICT).body(errors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
     }
 
-    @ExceptionHandler(UniqueFieldException.class)
-    public ResponseEntity<Map<String, String>> handleEmailExists(UniqueFieldException ex) {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-                .body(Map.of("message", ex.getMessage()));
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleEmailExists(DataIntegrityViolationException ex) {
+        Map<String, String> error = new HashMap<>();
+
+        String message = ex.getMessage();
+        if (message.contains("USERNAME NULLS FIRST")) {
+            error.put("message", "Username already taken.");
+        } else if (message.contains("EMAIL NULLS FIRST")) {
+            error.put("message", "Email already taken.");
+        } else {
+            error.put("message", "Error in the integrity of the database.");
+        }
+
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
 }
