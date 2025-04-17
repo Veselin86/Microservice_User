@@ -26,17 +26,21 @@ public class UserService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    public UserResponse findUserById(Long userId) throws ResourceNotFoundException {
-        User user = userRepository.findById(userId).orElseThrow(
-                () -> new ResourceNotFoundException("User with id " + userId + " not found")
-        );
-
+    private static UserResponse getUserResponse(User user) {
         return new UserResponse(
                 user.getUserId(),
                 user.getUsername(),
                 user.getName(),
                 user.getEmail()
         );
+    }
+
+    public UserResponse findUserById(Long userId) throws ResourceNotFoundException {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new ResourceNotFoundException("User with id " + userId + " not found")
+        );
+
+        return getUserResponse(user);
     }
 
     public UserResponse findUserByUsername(String username) throws ResourceNotFoundException {
@@ -44,12 +48,7 @@ public class UserService {
                 () -> new ResourceNotFoundException("User with username " + username + " not found")
         );
 
-        return new UserResponse(
-                user.getUserId(),
-                user.getUsername(),
-                user.getName(),
-                user.getEmail()
-        );
+        return getUserResponse(user);
     }
 
     public UserResponse findUserByEmail(String email) throws ResourceNotFoundException {
@@ -57,12 +56,7 @@ public class UserService {
                 () -> new ResourceNotFoundException("User with email " + email + " not found")
         );
 
-        return new UserResponse(
-                user.getUserId(),
-                user.getUsername(),
-                user.getName(),
-                user.getEmail()
-        );
+        return getUserResponse(user);
     }
 
     public Boolean isAdmin(Long userId) throws ResourceNotFoundException {
@@ -79,12 +73,7 @@ public class UserService {
         List<UserResponse> userResponses = new ArrayList<>();
 
         for (User user : users) {
-            UserResponse userResponse = new UserResponse(
-                    user.getUserId(),
-                    user.getUsername(),
-                    user.getName(),
-                    user.getEmail()
-            );
+            UserResponse userResponse = getUserResponse(user);
             userResponses.add(userResponse);
         }
 
@@ -105,12 +94,7 @@ public class UserService {
 
         user = userRepository.save(user);
 
-        return new UserResponse(
-                user.getUserId(),
-                user.getUsername(),
-                user.getName(),
-                user.getEmail()
-        );
+        return getUserResponse(user);
     }
 
     public UserResponse updateUser(Long id, UserRequestUpdate userRequestUpdate) throws ResourceNotFoundException {
@@ -123,12 +107,7 @@ public class UserService {
 
         userRepository.save(user);
 
-        return new UserResponse(
-                id,
-                userRequestUpdate.getUsername(),
-                userRequestUpdate.getName(),
-                userRequestUpdate.getEmail()
-        );
+        return getUserResponse(user);
     }
 
     public void updateUserPassword(Long id, UserPasswordRequest userPasswordRequest)
