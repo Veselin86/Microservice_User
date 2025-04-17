@@ -74,4 +74,12 @@ public interface IUserController {
     ResponseEntity<Object> deleteUser(
             @PathVariable Long userId
     ) throws ResourceNotFoundException;
+
+    @Operation(summary = "Get user information by his ID")
+    @ApiResponse(responseCode = "200", description = "Success")
+    @ApiResponse(responseCode = "404", description = "Not Found")
+    @ApiResponse(responseCode = "400", description = "Bad Request")
+    ResponseEntity<Boolean> isAdmin(
+            @PathVariable Long userId
+    ) throws ResourceNotFoundException;
 }

@@ -65,6 +65,14 @@ public class UserService {
         );
     }
 
+    public Boolean isAdmin(Long userId) throws ResourceNotFoundException {
+        User user = userRepository.findById(userId).orElseThrow(
+                () -> new ResourceNotFoundException("User with id " + userId + " not found")
+        );
+
+        return user.isAdmin();
+    }
+
     public List<UserResponse> findAllUsers() throws ResourceNotFoundException {
         List<User> users = userRepository.findAll();
 
@@ -91,7 +99,8 @@ public class UserService {
                 userRequestCreate.getUsername(),
                 userRequestCreate.getName(),
                 userRequestCreate.getEmail(),
-                encodedPassword
+                encodedPassword,
+                userRequestCreate.isAdmin()
         );
 
         user = userRepository.save(user);

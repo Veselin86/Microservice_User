@@ -40,6 +40,12 @@ public class UserControllerImpl implements IUserController {
         return ResponseEntity.status(HttpStatus.OK).body(userService.findUserByEmail(email));
     }
 
+    @GetMapping("/isAdmin/{userId}")
+    public ResponseEntity<Boolean> isAdmin(@PathVariable Long userId)
+            throws ResourceNotFoundException {
+        return ResponseEntity.status(HttpStatus.OK).body(userService.isAdmin(userId));
+    }
+
     @GetMapping
     public ResponseEntity<List<UserResponse>> findAllUsers()
             throws ResourceNotFoundException {

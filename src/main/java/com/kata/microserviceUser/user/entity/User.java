@@ -26,17 +26,21 @@ public class User {
 
     private String password;
 
+    @Column(name = "is_admin", nullable = false)
+    private boolean isAdmin = false;
+
     public User() {
     }
 
-    public User(String username, String name, String email, String password) {
+    public User(String username, String name, String email, String password, boolean isAdmin) {
         this.username = username;
         this.name = name;
         this.email = email;
         this.password = password;
+        this.isAdmin = isAdmin;
     }
 
-    public User(Long userId, String username, String name, String email, String password) {
+    public User(Long userId, String username, String name, String email, String password, boolean isAdmin) {
         this.userId = userId;
         this.username = username;
         this.name = name;
@@ -84,16 +88,24 @@ public class User {
         this.password = password;
     }
 
+    public boolean isAdmin() {
+        return isAdmin;
+    }
+
+    public void setAdmin(boolean admin) {
+        isAdmin = admin;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;
         User user = (User) o;
-        return Objects.equals(userId, user.userId) && Objects.equals(username, user.username) && Objects.equals(name, user.name) && Objects.equals(email, user.email) && Objects.equals(password, user.password);
+        return isAdmin == user.isAdmin && Objects.equals(userId, user.userId) && Objects.equals(username, user.username) && Objects.equals(name, user.name) && Objects.equals(email, user.email) && Objects.equals(password, user.password);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(userId, username, name, email, password);
+        return Objects.hash(userId, username, name, email, password, isAdmin);
     }
 
     @Override
@@ -104,6 +116,7 @@ public class User {
                 ", name='" + name + '\'' +
                 ", email='" + email + '\'' +
                 ", password='" + password + '\'' +
+                ", isAdmin=" + isAdmin +
                 '}';
     }
 }

@@ -17,7 +17,6 @@ import org.mockito.MockitoAnnotations;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -45,8 +44,8 @@ class UserServiceTest {
     void findUserById_existingId_returnUserResponse() throws ResourceNotFoundException {
         // Given
         Long id = 1L;
-        User user = new User(id, "test_username", "test_name", "test@test.com", "test1234");
-        UserResponse expected = new UserResponse(id,"test_username", "test_name", "test@test.com");
+        User user = new User(id, "test_username", "test_name", "test@test.com", "test1234", false);
+        UserResponse expected = new UserResponse(id, "test_username", "test_name", "test@test.com");
         Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
 
         // When
@@ -80,8 +79,8 @@ class UserServiceTest {
         // Given
         Long id = 1L;
         String username = "test_username";
-        User user = new User(id, "test_username", "test_name", "test@test.com", "test1234");
-        UserResponse expected = new UserResponse(id,"test_username", "test_name", "test@test.com");
+        User user = new User(id, "test_username", "test_name", "test@test.com", "test1234", false);
+        UserResponse expected = new UserResponse(id, "test_username", "test_name", "test@test.com");
         Mockito.when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
         // When
@@ -115,8 +114,8 @@ class UserServiceTest {
         // Given
         Long id = 1L;
         String email = "test@test.com";
-        User user = new User(id, "test_username", "test_name", "test@test.com", "test1234");
-        UserResponse expected = new UserResponse(id,"test_username", "test_name", "test@test.com");
+        User user = new User(id, "test_username", "test_name", "test@test.com", "test1234", false);
+        UserResponse expected = new UserResponse(id, "test_username", "test_name", "test@test.com");
         Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
         // When
@@ -146,12 +145,59 @@ class UserServiceTest {
     }
 
     @Test
+    void isAdmin_correctAdminIdGiven_returnTrue() throws ResourceNotFoundException {
+        // Given
+        Long id = 1L;
+        User user = new User();
+        user.setUserId(id);
+        user.setAdmin(true);
+        Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
+
+        // When
+        boolean actual = userService.isAdmin(id);
+
+        // Then
+        assertTrue(actual);
+    }
+
+    @Test
+    void isAdmin_incorrectAdminIdGiven_returnFalse() throws ResourceNotFoundException {
+        // Given
+        Long id = 1L;
+        User user = new User();
+        user.setUserId(id);
+        user.setAdmin(false);
+        Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
+
+        // When
+        boolean actual = userService.isAdmin(id);
+
+        // Then
+        assertFalse(actual);
+    }
+
+    @Test
+    void isAdmin_inexistingIdGiven_throwsResourceNotFound() throws ResourceNotFoundException {
+        // Given
+        Long id = 999L;
+        Mockito.when(userRepository.findById(id)).thenReturn(Optional.empty());
+
+        // When
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class, () -> {
+            userService.isAdmin(id);
+        });
+
+        // Then
+        assertEquals("User with id " + id + " not found", exception.getMessage());
+    }
+
+    @Test
     void findAllUsers_existingUsersInDatabase_returnListOfUserResponse() throws ResourceNotFoundException {
         // Given
         List<User> users = new ArrayList<>(List.of(
-                new User(1L, "test_username1", "test_name1", "test1@test.com", "test1234"),
-                new User(2L, "test_username2", "test_name2", "test2@test.com", "test1234"),
-                new User(3L, "test_username3", "test_name3", "test3@test.com", "test1234")
+                new User(1L, "test_username1", "test_name1", "test1@test.com", "test1234", false),
+                new User(2L, "test_username2", "test_name2", "test2@test.com", "test1234", false),
+                new User(3L, "test_username3", "test_name3", "test3@test.com", "test1234", false)
         ));
         List<UserResponse> expected = new ArrayList<>(List.of(
                 new UserResponse(1L, "test_username1", "test_name1", "test1@test.com"),
@@ -176,9 +222,9 @@ class UserServiceTest {
 
         Mockito.when(passwordEncoder.encode(Mockito.any(String.class))).thenReturn(password);
 
-        User user = new User(1L, username, "test_name", email, password);
+        User user = new User(1L, username, "test_name", email, password, false);
         UserResponse expected = new UserResponse(1L, username, "test_name", email);
-        UserRequestCreate userRequestCreate = new UserRequestCreate(username, "test_name", email, password);
+        UserRequestCreate userRequestCreate = new UserRequestCreate(username, "test_name", email, password, false);
 
         Mockito.when(userRepository.save(Mockito.any(User.class))).thenReturn(user);
 
@@ -196,13 +242,13 @@ class UserServiceTest {
     void createUser_validUserRequestWithEmailInUse_throwDataIntegrityViolationException() {
         // Given
         String email = "test@test.com";
-        UserRequestCreate userRequestCreate = new UserRequestCreate("test_username1", "test_name1", email, "test1234");
+        UserRequestCreate userRequestCreate = new UserRequestCreate("test_username1", "test_name1", email, "test1234", false);
         Mockito.when(userRepository.save(Mockito.any(User.class)))
                 .thenThrow(new DataIntegrityViolationException("Email already taken"));
 
         // When
         DataIntegrityViolationException exception = assertThrows(DataIntegrityViolationException.class, () -> {
-                    userService.createUser(userRequestCreate);
+            userService.createUser(userRequestCreate);
         });
 
         // Then
@@ -213,7 +259,7 @@ class UserServiceTest {
     void createUser_validUserRequestWithUsernameInUse_throwUniqueFieldException() {
         // Given
         String username = "test_username";
-        UserRequestCreate userRequestCreate = new UserRequestCreate(username, "test_name1", "test1@test.com", "test1234");
+        UserRequestCreate userRequestCreate = new UserRequestCreate(username, "test_name1", "test1@test.com", "test1234", false);
         Mockito.when(userRepository.save(Mockito.any(User.class)))
                 .thenThrow(new DataIntegrityViolationException("Username already taken"));
 
@@ -234,7 +280,7 @@ class UserServiceTest {
 
         Mockito.when(passwordEncoder.encode(Mockito.any(String.class))).thenReturn(password);
 
-        User user = new User(id, "test_username", "test_name", "test@test.com", password);
+        User user = new User(id, "test_username", "test_name", "test@test.com", password, false);
         User modifiedUser = new User();
         modifiedUser.setUsername("test_username1");
         modifiedUser.setName("test_name1");
@@ -261,7 +307,7 @@ class UserServiceTest {
         // Given
         Long id = 1L;
         String email = "test@test.com";
-        User user = new User(id, "test_username", "test_name", email, "test1234");
+        User user = new User(id, "test_username", "test_name", email, "test1234", false);
         UserRequestUpdate userRequestUpdate = new UserRequestUpdate("test_username1", "test_name1", email);
 
         Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
@@ -282,7 +328,7 @@ class UserServiceTest {
         // Given
         Long id = 1L;
         String username = "test_username";
-        User userExisting = new User(1L, username, "test_name", "test@test.com", "test1234");
+        User userExisting = new User(1L, username, "test_name", "test@test.com", "test1234", false);
         UserRequestUpdate userRequestUpdate = new UserRequestUpdate(username, "test_name1", "test1@test.com");
 
         Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(userExisting));
@@ -311,7 +357,7 @@ class UserServiceTest {
         userPasswordRequest.setExistingPassword(password);
         userPasswordRequest.setNewPassword(newPassword);
 
-        User user = new User(id, "test_username", "test_name", "test@test.com", password);
+        User user = new User(id, "test_username", "test_name", "test@test.com", password, false);
         Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
         Mockito.when(passwordEncoder.encode(userPasswordRequest.getNewPassword())).thenReturn(newPassword);
         Mockito.when(passwordEncoder.matches(password, user.getPassword())).thenReturn(true);
@@ -338,7 +384,7 @@ class UserServiceTest {
         userPasswordRequest.setExistingPassword(wrongPassword);
         userPasswordRequest.setNewPassword(newPassword);
 
-        User user = new User(id, "test_username", "test_name", "test@test.com", existPassword);
+        User user = new User(id, "test_username", "test_name", "test@test.com", existPassword, false);
         Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
         Mockito.when(passwordEncoder.encode(userPasswordRequest.getNewPassword())).thenReturn(wrongPassword);
         Mockito.when(passwordEncoder.matches(existPassword, user.getPassword())).thenReturn(false);
@@ -357,7 +403,7 @@ class UserServiceTest {
     void deleteUser_validIdGiven_userDeleted() throws ResourceNotFoundException {
         // Given
         Long id = 1L;
-        User user = new User(id, "test_username", "test_name", "test@test.com", "test1234");
+        User user = new User(id, "test_username", "test_name", "test@test.com", "test1234", false);
         Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
 
         // When

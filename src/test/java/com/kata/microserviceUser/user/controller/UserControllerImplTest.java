@@ -45,7 +45,7 @@ class UserControllerImplTest {
     void findUserById_validIdOfUser_returnUserWithResponseOK() throws Exception {
         // Given
         Long id = 1L;
-        User user = new User(id, "test_username", "test_name", "test@test.com", "test1234");
+        User user = new User(id, "test_username", "test_name", "test@test.com", "test1234", false);
         Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
 
         // When
@@ -77,7 +77,7 @@ class UserControllerImplTest {
     void findUserByUsername_validUsernameOfUser_returnUserWithResponseOK() throws Exception {
         // Given
         String username = "test_username";
-        User user = new User(1L, "test_username", "test_name", "test@test.com", "test1234");
+        User user = new User(1L, "test_username", "test_name", "test@test.com", "test1234", false);
         Mockito.when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
         // When
@@ -108,7 +108,7 @@ class UserControllerImplTest {
     void findUserByEmail_validEmailOfUser_returnUserWithResponseOK() throws Exception {
         // Given
         String email = "test@test.com";
-        User user = new User(1L, "test_username", "test_name", "test@test.com", "test1234");
+        User user = new User(1L, "test_username", "test_name", "test@test.com", "test1234", false);
         Mockito.when(userRepository.findByEmail(email)).thenReturn(Optional.of(user));
 
         // When
@@ -136,12 +136,46 @@ class UserControllerImplTest {
     }
 
     @Test
+    void isAdmin_correctAdminIdGiven_returnTrue() throws Exception {
+        // Given
+        Long id = 1L;
+        User user = new User();
+        user.setUserId(id);
+        user.setAdmin(true);
+        Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
+
+        // When
+        ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.get("/users/isAdmin/{id}", id));
+
+        // Then
+        perform.andExpect(status().isOk())
+                .andExpect(jsonPath("$").value(true));
+    }
+
+    @Test
+    void isAdmin_incorrectAdminIdGiven_returnFalse() throws Exception {
+        // Given
+        Long id = 1L;
+        User user = new User();
+        user.setUserId(id);
+        user.setAdmin(false);
+        Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
+
+        // When
+        ResultActions perform = mockMvc.perform(MockMvcRequestBuilders.get("/users/isAdmin/{id}", id));
+
+        // Then
+        perform.andExpect(status().isOk())
+                .andExpect(jsonPath("$").value(false));
+    }
+
+    @Test
     void findAllUsers_existingUsersInDatabase_returnResponseOK() throws Exception {
         // Given
         List<User> users = new ArrayList<>(List.of(
-                new User(1L, "test_username1", "test_name1", "test1@test.com", "test1234"),
-                new User(2L, "test_username2", "test_name2", "test2@test.com", "test1234"),
-                new User(3L, "test_username3", "test_name3", "test3@test.com", "test1234")
+                new User(1L, "test_username1", "test_name1", "test1@test.com", "test1234", false),
+                new User(2L, "test_username2", "test_name2", "test2@test.com", "test1234", false),
+                new User(3L, "test_username3", "test_name3", "test3@test.com", "test1234", false)
         ));
         Mockito.when(userRepository.findAll()).thenReturn(users);
 
@@ -156,8 +190,8 @@ class UserControllerImplTest {
     void createUser_validUserDataGiven_returnResponseCreatedWithUserResponse() throws Exception {
         // Given
         String encodedPassword = "encodedtest1234";
-        User user = new User(1L, "test_username", "test_name", "test@test.com", encodedPassword);
-        User userRequest = new User("test_username", "test_name", "test@test.com", encodedPassword);
+        User user = new User(1L, "test_username", "test_name", "test@test.com", encodedPassword, false);
+        User userRequest = new User("test_username", "test_name", "test@test.com", encodedPassword, false);
         Mockito.when(passwordEncoder.encode(Mockito.any())).thenReturn(encodedPassword);
         String json = objectMapper.writeValueAsString(user);
         Mockito.when(userRepository.save(userRequest)).thenReturn(user);
@@ -200,7 +234,7 @@ class UserControllerImplTest {
         // Given
         String encodedPassword = "encodedTest1234";
         String email = "test@test.com";
-        UserRequestCreate userRequest = new UserRequestCreate("test_username", "test_name", email, encodedPassword);
+        UserRequestCreate userRequest = new UserRequestCreate("test_username", "test_name", email, encodedPassword, false);
         String json = objectMapper.writeValueAsString(userRequest);
 
         Mockito.when(passwordEncoder.encode(Mockito.any())).thenReturn(encodedPassword);
@@ -223,7 +257,7 @@ class UserControllerImplTest {
         // Given
         String encodedPassword = "encodedTest1234";
         String username = "test_username";
-        UserRequestCreate userRequest = new UserRequestCreate(username, "test_name", "test@test.com", encodedPassword);
+        UserRequestCreate userRequest = new UserRequestCreate(username, "test_name", "test@test.com", encodedPassword, false);
         String json = objectMapper.writeValueAsString(userRequest);
 
         Mockito.when(passwordEncoder.encode(Mockito.any())).thenReturn(encodedPassword);
@@ -246,8 +280,8 @@ class UserControllerImplTest {
         Long id = 1L;
         String username = "test_username1";
         String email = "test1@test.com";
-        User user = new User(id, "test_username", "test_name", "test@test.com", "test1234");
-        User userModified = new User(id, username, "test_name1", email, "test1234");
+        User user = new User(id, "test_username", "test_name", "test@test.com", "test1234", false);
+        User userModified = new User(id, username, "test_name1", email, "test1234", false);
 
         String json = objectMapper.writeValueAsString(userModified);
 
@@ -270,7 +304,7 @@ class UserControllerImplTest {
     void updateUser_nonExistingIdOfUserGiven_returnResponseNotFound() throws Exception {
         // Given
         Long id = 999L;
-        User user = new User("test_username", "test_name", "test@test.com", "test1234");
+        User user = new User(1L, "test_username", "test_name", "test@test.com", "test1234", false);
 
         String json = objectMapper.writeValueAsString(user);
         Mockito.when(userRepository.findById(id)).thenReturn(Optional.empty());
@@ -329,7 +363,7 @@ class UserControllerImplTest {
     void updateUserPassword_existingIdGiven_passwordModified() throws Exception {
         // Given
         Long id = 1L;
-        User user = new User(id, "test-username", "test_name", "test@test.com", "test1234");
+        User user = new User(id, "test-username", "test_name", "test@test.com", "test1234", false);
         UserPasswordRequest userPasswordRequest = new UserPasswordRequest("test1234", "newPassword");
         String json = objectMapper.writeValueAsString(userPasswordRequest);
 
@@ -351,7 +385,7 @@ class UserControllerImplTest {
     void deleteUser_idOfExistingUserGiven_userDeletedNoContentReturn() throws Exception {
         // Given
         Long id = 1L;
-        User user = new User(id, "test-username", "test_name", "test@test.com", "test1234");
+        User user = new User(id, "test-username", "test_name", "test@test.com", "test1234", false);
         Mockito.when(userRepository.findById(id)).thenReturn(Optional.of(user));
 
         // When
