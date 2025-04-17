@@ -52,7 +52,7 @@ public interface IUserController {
     );
 
     @Operation(summary = "Update an existing user")
-    @ApiResponse(responseCode = "201", description = "Created")
+    @ApiResponse(responseCode = "201", description = "Accepted")
     @ApiResponse(responseCode = "400", description = "Bad Request")
     @ApiResponse(responseCode = "409", description = "Conflict")
     ResponseEntity<UserResponse> updateUser(
