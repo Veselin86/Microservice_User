@@ -95,7 +95,7 @@ public class User {
     public void setAdmin(boolean admin) {
         isAdmin = admin;
     }
-
+    
     @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) return false;

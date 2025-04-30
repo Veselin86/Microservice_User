@@ -1,8 +1,10 @@
 package com.kata.microserviceUser.user.service;
 
+import com.kata.microserviceUser.auth.security.JwtUtil;
 import com.kata.microserviceUser.user.entity.User;
 import com.kata.microserviceUser.user.exceptions.MethodArgumentNotValidException;
 import com.kata.microserviceUser.user.exceptions.ResourceNotFoundException;
+import com.kata.microserviceUser.user.exceptions.UnauthotizedException;
 import com.kata.microserviceUser.user.repository.UserRepository;
 import com.kata.microserviceUser.user.userDTO.UserPasswordRequest;
 import com.kata.microserviceUser.user.userDTO.UserRequestCreate;
@@ -11,13 +13,11 @@ import com.kata.microserviceUser.user.userDTO.UserResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@Validated
 public class UserService {
 
     @Autowired
@@ -25,6 +25,9 @@ public class UserService {
 
     @Autowired
     private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     private static UserResponse getUserResponse(User user) {
         return new UserResponse(
@@ -80,11 +83,16 @@ public class UserService {
         return userResponses;
     }
 
-    public UserResponse createUser(UserRequestCreate userRequestCreate) {
+    public UserResponse createUser(Long requesterId, UserRequestCreate userRequestCreate) throws UnauthotizedException, ResourceNotFoundException {
+        if (isAdmin(requesterId)) {
+            throw new UnauthotizedException("Not authorized to create user");
+        }
+
         String rawPassword = userRequestCreate.getPassword();
         String encodedPassword = passwordEncoder.encode(rawPassword);
 
         User user = new User(
+                null,
                 userRequestCreate.getUsername(),
                 userRequestCreate.getName(),
                 userRequestCreate.getEmail(),
@@ -127,9 +135,18 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void deleteUser(Long id) throws ResourceNotFoundException {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
-        userRepository.delete(user);
+    public void deleteUser(String token, Long id) throws UnauthotizedException, ResourceNotFoundException {
+        if (token.startsWith("Bearer ")) {
+            token = token.substring(7);
+        }
+        
+        if (jwtUtil.extractIsAdmin(token)) {
+            User user = userRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+
+            userRepository.delete(user);
+        } else {
+            throw new UnauthotizedException("Not authorized to delete an user");
+        }
     }
 }

@@ -52,4 +52,15 @@ public class ControllerExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(error);
     }
+
+    @ExceptionHandler(UnauthotizedException.class)
+    public ResponseEntity<ErrorMessage> handleUnauthorizedException(UnauthotizedException ex, WebRequest request) {
+        ErrorMessage message = new ErrorMessage(
+                HttpStatus.FORBIDDEN.value(),
+                new Date(),
+                ex.getMessage(),
+                request.getDescription(false)
+        );
+        return new ResponseEntity<>(message, HttpStatus.FORBIDDEN);
+    }
 }

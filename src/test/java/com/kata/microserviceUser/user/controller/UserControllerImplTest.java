@@ -191,7 +191,7 @@ class UserControllerImplTest {
         // Given
         String encodedPassword = "encodedtest1234";
         User user = new User(1L, "test_username", "test_name", "test@test.com", encodedPassword, false);
-        User userRequest = new User("test_username", "test_name", "test@test.com", encodedPassword, false);
+        User userRequest = new User(null, "test_username", "test_name", "test@test.com", false);
         Mockito.when(passwordEncoder.encode(Mockito.any())).thenReturn(encodedPassword);
         String json = objectMapper.writeValueAsString(user);
         Mockito.when(userRepository.save(userRequest)).thenReturn(user);

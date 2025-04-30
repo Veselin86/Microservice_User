@@ -2,6 +2,7 @@ package com.kata.microserviceUser.user.controller;
 
 import com.kata.microserviceUser.user.exceptions.MethodArgumentNotValidException;
 import com.kata.microserviceUser.user.exceptions.ResourceNotFoundException;
+import com.kata.microserviceUser.user.exceptions.UnauthotizedException;
 import com.kata.microserviceUser.user.service.UserService;
 import com.kata.microserviceUser.user.userDTO.UserPasswordRequest;
 import com.kata.microserviceUser.user.userDTO.UserRequestCreate;
@@ -53,8 +54,8 @@ public class UserControllerImpl implements IUserController {
     }
 
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequestCreate userRequestCreate) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequestCreate));
+    public ResponseEntity<UserResponse> createUser(@RequestParam Long requesterId, @Valid @RequestBody UserRequestCreate userRequestCreate) throws UnauthotizedException, ResourceNotFoundException {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(requesterId, userRequestCreate));
     }
 
     @PutMapping("/{userId}")
@@ -71,9 +72,9 @@ public class UserControllerImpl implements IUserController {
     }
 
     @DeleteMapping("/{userId}")
-    public ResponseEntity<Object> deleteUser(@PathVariable Long userId)
-            throws ResourceNotFoundException {
-        userService.deleteUser(userId);
+    public ResponseEntity<Object> deleteUser(@RequestHeader("Authorization") String token, @PathVariable Long userId)
+            throws ResourceNotFoundException, UnauthotizedException {
+        userService.deleteUser(token, userId);
         return ResponseEntity.noContent().build();
     }
 }
