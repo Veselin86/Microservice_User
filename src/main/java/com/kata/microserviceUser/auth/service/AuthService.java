@@ -4,6 +4,7 @@ import com.kata.microserviceUser.auth.authDTO.AuthRequest;
 import com.kata.microserviceUser.auth.authDTO.AuthResponse;
 import com.kata.microserviceUser.auth.security.JwtUtil;
 import com.kata.microserviceUser.user.entity.User;
+import com.kata.microserviceUser.user.exceptions.InvalidCredentialsException;
 import com.kata.microserviceUser.user.exceptions.MethodArgumentNotValidException;
 import com.kata.microserviceUser.user.exceptions.ResourceNotFoundException;
 import com.kata.microserviceUser.user.repository.UserRepository;
@@ -25,12 +26,12 @@ public class AuthService {
     @Autowired
     private JwtUtil jwtUtil;
 
-    public AuthResponse login(AuthRequest authRequest) throws ResourceNotFoundException, MethodArgumentNotValidException {
+    public AuthResponse login(AuthRequest authRequest) throws ResourceNotFoundException, InvalidCredentialsException {
         User user = userRepository.findByEmail(authRequest.getEmail()).orElseThrow(() ->
                 new ResourceNotFoundException("User with email " + authRequest.getEmail() + " not found"));
 
         if (!passwordEncoder.matches(authRequest.getPassword(), user.getPassword())) {
-            throw new MethodArgumentNotValidException("Wrong password");
+            throw new InvalidCredentialsException("Wrong password");
         }
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getUserId(), user.isAdmin());
@@ -39,14 +40,6 @@ public class AuthService {
     }
 
     public UserResponse register(UserRequestCreate authRequest) throws MethodArgumentNotValidException {
-        if (userRepository.findByEmail(authRequest.getEmail()).isPresent()) {
-            throw new MethodArgumentNotValidException("Email is already registered");
-        }
-
-        if (userRepository.findByUsername(authRequest.getUsername()).isPresent()) {
-            throw new MethodArgumentNotValidException("Username is already taken");
-        }
-
         String encodedPassword = passwordEncoder.encode(authRequest.getPassword());
 
         User user = new User(
@@ -59,5 +52,9 @@ public class AuthService {
         User savedUser = userRepository.save(user);
 
         return new UserResponse(savedUser.getUserId(), savedUser.getUsername(), savedUser.getName(), savedUser.getEmail());
+    }
+
+    public Boolean isTokenValid(String authHeader) {
+        return jwtUtil.validateToken(authHeader);
     }
 }

@@ -63,4 +63,11 @@ public class ControllerExceptionHandler {
         );
         return new ResponseEntity<>(message, HttpStatus.FORBIDDEN);
     }
+
+    @ExceptionHandler(InvalidCredentialsException.class)
+    public ResponseEntity<Map<String, String>> handleInvalidCredentials(InvalidCredentialsException ex) {
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(Map.of("error", ex.getMessage()));
+    }
 }

@@ -227,7 +227,6 @@ class UserServiceTest {
         UserRequestCreate userRequestCreate = new UserRequestCreate(username, "test_name", email, password, false);
         User admin = new User(2L, "admin_username", "admin_name", "admin@test.com", "admin1234", true);
         Mockito.when(userRepository.findById(admin.getUserId())).thenReturn(Optional.of(admin));
-//        Mockito.when(userRepository.isAdmin(admin.getUserId())).thenReturn(true);
         Mockito.when(userRepository.save(Mockito.any(User.class))).thenReturn(user);
 
         // When
@@ -247,7 +246,6 @@ class UserServiceTest {
         UserRequestCreate userRequestCreate = new UserRequestCreate("test_username1", "test_name1", email, "test1234", false);
         User admin = new User(2L, "admin_username", "admin_name", "admin@test.com", "admin1234", true);
         Mockito.when(userRepository.findById(admin.getUserId())).thenReturn(Optional.of(admin));
-//        Mockito.when(userRepository.isAdmin(admin.getUserId())).thenReturn(true);
         Mockito.when(userRepository.save(Mockito.any(User.class)))
                 .thenThrow(new DataIntegrityViolationException("Email already taken"));
 
@@ -267,7 +265,6 @@ class UserServiceTest {
         UserRequestCreate userRequestCreate = new UserRequestCreate(username, "test_name1", "test1@test.com", "test1234", false);
         User admin = new User(2L, "admin_username", "admin_name", "admin@test.com", "admin1234", true);
         Mockito.when(userRepository.findById(admin.getUserId())).thenReturn(Optional.of(admin));
-//        Mockito.when(userRepository.isAdmin(admin.getUserId())).thenReturn(true);
         Mockito.when(userRepository.save(Mockito.any(User.class)))
                 .thenThrow(new DataIntegrityViolationException("Username already taken"));
 

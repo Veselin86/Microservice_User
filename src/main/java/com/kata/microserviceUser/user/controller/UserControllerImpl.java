@@ -8,7 +8,6 @@ import com.kata.microserviceUser.user.userDTO.UserPasswordRequest;
 import com.kata.microserviceUser.user.userDTO.UserRequestCreate;
 import com.kata.microserviceUser.user.userDTO.UserRequestUpdate;
 import com.kata.microserviceUser.user.userDTO.UserResponse;
-import jakarta.annotation.security.RolesAllowed;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -55,20 +54,20 @@ public class UserControllerImpl implements IUserController {
     }
 
     @PostMapping
-    @RolesAllowed("ADMIN")
+//    @RolesAllowed("ADMIN")
     public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserRequestCreate userRequestCreate) throws UnauthotizedException, ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.createUser(userRequestCreate));
     }
 
     @PutMapping("/{userId}")
-    @RolesAllowed("ADMIN")
+//    @RolesAllowed("ADMIN")
     public ResponseEntity<UserResponse> updateUser(@PathVariable Long userId, @Valid @RequestBody UserRequestUpdate userRequestUpdate)
             throws ResourceNotFoundException {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(userService.updateUser(userId, userRequestUpdate));
     }
 
     @PutMapping("/password/{userId}")
-    @RolesAllowed("ADMIN")
+//    @RolesAllowed("ADMIN")
     public ResponseEntity<String> updateUserPassword(@PathVariable Long userId, @Valid @RequestBody UserPasswordRequest userPasswordRequest)
             throws MethodArgumentNotValidException, ResourceNotFoundException {
         userService.updateUserPassword(userId, userPasswordRequest);
@@ -76,7 +75,7 @@ public class UserControllerImpl implements IUserController {
     }
 
     @DeleteMapping("/{userId}")
-    @RolesAllowed("ADMIN")
+//    @RolesAllowed("ADMIN")
     public ResponseEntity<Object> deleteUser(@PathVariable Long userId)
             throws ResourceNotFoundException, UnauthotizedException {
         userService.deleteUser(userId);
