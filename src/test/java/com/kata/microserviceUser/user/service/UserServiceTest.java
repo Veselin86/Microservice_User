@@ -231,7 +231,7 @@ class UserServiceTest {
         Mockito.when(userRepository.save(Mockito.any(User.class))).thenReturn(user);
 
         // When
-        UserResponse actual = userService.createUser(admin.getUserId(), userRequestCreate);
+        UserResponse actual = userService.createUser(userRequestCreate);
 
         // Then
         assertEquals(expected.getUserId(), actual.getUserId());
@@ -253,7 +253,7 @@ class UserServiceTest {
 
         // When
         DataIntegrityViolationException exception = assertThrows(DataIntegrityViolationException.class, () -> {
-            userService.createUser(admin.getUserId(), userRequestCreate);
+            userService.createUser(userRequestCreate);
         });
 
         // Then
@@ -273,7 +273,7 @@ class UserServiceTest {
 
         // When
         DataIntegrityViolationException exception = assertThrows(DataIntegrityViolationException.class, () -> {
-            userService.createUser(admin.getUserId(), userRequestCreate);
+            userService.createUser(userRequestCreate);
         });
 
         // Then

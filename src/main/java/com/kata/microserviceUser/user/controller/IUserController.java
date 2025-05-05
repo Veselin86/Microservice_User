@@ -13,7 +13,6 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
 
@@ -50,7 +49,6 @@ public interface IUserController {
     @ApiResponse(responseCode = "400", description = "Bad Request")
     @ApiResponse(responseCode = "409", description = "Conflict")
     ResponseEntity<UserResponse> createUser(
-            @RequestParam Long requesterId,
             @Valid @RequestBody UserRequestCreate userRequestCreate
     ) throws UnauthotizedException, ResourceNotFoundException;
 
@@ -75,7 +73,6 @@ public interface IUserController {
     @ApiResponse(responseCode = "204", description = "No Content")
     @ApiResponse(responseCode = "404", description = "Not Found")
     ResponseEntity<Object> deleteUser(
-            String token,
             @PathVariable Long userId
     ) throws ResourceNotFoundException, UnauthotizedException;
 

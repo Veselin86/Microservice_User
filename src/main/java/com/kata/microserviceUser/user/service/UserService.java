@@ -83,11 +83,7 @@ public class UserService {
         return userResponses;
     }
 
-    public UserResponse createUser(Long requesterId, UserRequestCreate userRequestCreate) throws UnauthotizedException, ResourceNotFoundException {
-        if (isAdmin(requesterId)) {
-            throw new UnauthotizedException("Not authorized to create user");
-        }
-
+    public UserResponse createUser(UserRequestCreate userRequestCreate) throws UnauthotizedException, ResourceNotFoundException {
         String rawPassword = userRequestCreate.getPassword();
         String encodedPassword = passwordEncoder.encode(rawPassword);
 
@@ -135,18 +131,10 @@ public class UserService {
         userRepository.save(user);
     }
 
-    public void deleteUser(String token, Long id) throws UnauthotizedException, ResourceNotFoundException {
-        if (token.startsWith("Bearer ")) {
-            token = token.substring(7);
-        }
-        
-        if (jwtUtil.extractIsAdmin(token)) {
-            User user = userRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
+    public void deleteUser(Long id) throws UnauthotizedException, ResourceNotFoundException {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User with id " + id + " not found"));
 
-            userRepository.delete(user);
-        } else {
-            throw new UnauthotizedException("Not authorized to delete an user");
-        }
+        userRepository.delete(user);
     }
 }
